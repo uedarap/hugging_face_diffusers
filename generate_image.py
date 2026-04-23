@@ -1,7 +1,7 @@
-"""CLI principal para geração de imagem por prompt.
+"""CLI principal para geracao de imagem por prompt.
 
-Este script é propositalmente fino: ele lida com argumentos, resolve a
-configuração final e delega a inferência ao módulo de pipeline.
+Este script e propositalmente fino: ele lida com argumentos, resolve a
+configuracao final e delega a inferencia ao modulo de pipeline.
 """
 
 from __future__ import annotations
@@ -19,15 +19,28 @@ def parse_args() -> argparse.Namespace:
         description="Gera uma imagem por prompt usando Hugging Face Diffusers."
     )
     parser.add_argument("--prompt", required=True, help="Prompt de texto para a imagem.")
-    parser.add_argument("--profile", help="Perfil de execução: auto, cpu_safe, gtx1080, high_quality.")
+    parser.add_argument(
+        "--profile",
+        help="Perfil de execucao: auto, cpu_safe, gtx1080, gtx1650, high_quality.",
+    )
     parser.add_argument("--device", choices=["auto", "cpu", "cuda"], help="Device desejado.")
-    parser.add_argument("--config", default="config.yaml", help="Caminho do arquivo YAML de configuração.")
+    parser.add_argument(
+        "--dtype",
+        choices=["auto", "float32", "float16"],
+        help="Precisao numerica desejada para o pipeline.",
+    )
+    parser.add_argument("--config", default="config.yaml", help="Caminho do arquivo YAML de configuracao.")
     parser.add_argument("--seed", type=int, help="Seed para reprodutibilidade.")
-    parser.add_argument("--output", help="Caminho completo do arquivo de saída.")
-    parser.add_argument("--steps", type=int, help="Quantidade de steps de inferência.")
+    parser.add_argument("--output", help="Caminho completo do arquivo de saida.")
+    parser.add_argument("--steps", type=int, help="Quantidade de steps de inferencia.")
     parser.add_argument("--width", type=int, help="Largura da imagem.")
     parser.add_argument("--height", type=int, help="Altura da imagem.")
-    parser.add_argument("--guidance-scale", type=float, help="Guidance scale para a geração.")
+    parser.add_argument("--guidance-scale", type=float, help="Guidance scale para a geracao.")
+    parser.add_argument(
+        "--disable-safety-checker",
+        action="store_true",
+        help="Desativa o safety checker do modelo para testes locais.",
+    )
     return parser.parse_args()
 
 
@@ -41,6 +54,7 @@ def main() -> int:
             cli_overrides={
                 "runtime.device_mode": args.device,
                 "runtime.performance_profile": args.profile,
+                "runtime.dtype": args.dtype,
                 "image.seed": args.seed,
                 "image.steps": args.steps,
                 "image.width": args.width,
@@ -55,17 +69,21 @@ def main() -> int:
             from src.pipelines.image_generation import generate_image
         except ImportError as exc:
             raise RuntimeError(
-                "Dependências de geração de imagem ausentes. Instale os pacotes do requirements.txt e o PyTorch correto para sua máquina."
+                "Dependencias de geracao de imagem ausentes. Instale os pacotes do requirements.txt e o PyTorch correto para sua maquina."
             ) from exc
-        logger.info("Iniciando geração de imagem.")
+        logger.info("Iniciando geracao de imagem.")
         logger.info(
-            "Config final: profile=%s | device=%s | dtype=%s | model=%s",
+            "Config final: profile=%s | device=%s | dtype=%s | model=%s | safety_checker=%s",
             app_config.runtime.performance_profile,
             app_config.runtime.resolved_device,
             app_config.runtime.resolved_dtype,
             app_config.models.image_model,
+            "off" if args.disable_safety_checker else "on",
         )
-        result = generate_image(app_config)
+        result = generate_image(
+            app_config,
+            disable_safety_checker=args.disable_safety_checker,
+        )
         logger.info("Imagem salva em: %s", result.output_path)
         return 0
     except ConfigurationError as exc:
@@ -74,7 +92,7 @@ def main() -> int:
     except RuntimeError as exc:
         print(f"[RUNTIME ERROR] {exc}", file=sys.stderr)
         return 3
-    except Exception as exc:  # pragma: no cover - útil como última proteção em POC didática.
+    except Exception as exc:  # pragma: no cover - util como ultima protecao em POC didatica.
         print(f"[UNEXPECTED ERROR] {exc}", file=sys.stderr)
         return 1
 

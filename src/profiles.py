@@ -1,7 +1,8 @@
-"""Perfis de execução da POC.
+"""Perfis de execucao da POC.
 
-Perfis existem para representar intenções de uso, e não apenas conjuntos aleatórios
-de números. Cada perfil abaixo foi pensado para estudo e pode ser adaptado depois.
+Perfis existem para representar intencoes de uso, e nao apenas conjuntos
+aleatorios de numeros. Cada perfil abaixo foi pensado para estudo e pode
+ser adaptado depois.
 """
 
 from __future__ import annotations
@@ -23,7 +24,7 @@ PROFILES: dict[str, ExecutionProfile] = {
     "auto": ExecutionProfile(
         name="auto",
         description=(
-            "Perfil neutro. Mantém valores moderados e deixa a escolha do device por conta da detecção automática."
+            "Perfil neutro. Mantem valores moderados e deixa a escolha do device por conta da deteccao automatica."
         ),
         overrides={
             "runtime": {
@@ -36,7 +37,7 @@ PROFILES: dict[str, ExecutionProfile] = {
     "cpu_safe": ExecutionProfile(
         name="cpu_safe",
         description=(
-            "Perfil conservador para máquinas sem GPU. Reduz custo para tornar a POC estudável em CPU."
+            "Perfil conservador para maquinas sem GPU. Reduz custo para tornar a POC estudavel em CPU."
         ),
         overrides={
             "runtime": {
@@ -63,7 +64,7 @@ PROFILES: dict[str, ExecutionProfile] = {
     "gtx1080": ExecutionProfile(
         name="gtx1080",
         description=(
-            "Perfil para GPU intermediária/antiga com CUDA. Prioriza equilíbrio entre VRAM limitada e usabilidade."
+            "Perfil para GPU intermediaria/antiga com CUDA. Prioriza equilibrio entre VRAM limitada e usabilidade."
         ),
         overrides={
             "runtime": {
@@ -87,10 +88,37 @@ PROFILES: dict[str, ExecutionProfile] = {
             },
         },
     ),
+    "gtx1650": ExecutionProfile(
+        name="gtx1650",
+        description=(
+            "Perfil para GTX 1650 e GPUs com 4 GB de VRAM. Usa float32 para evitar instabilidades comuns com float16."
+        ),
+        overrides={
+            "runtime": {
+                "device_mode": "cuda",
+                "performance_profile": "gtx1650",
+                "dtype": "float32",
+            },
+            "image": {
+                "width": 448,
+                "height": 448,
+                "steps": 16,
+                "guidance_scale": 7.0,
+            },
+            "video": {
+                "width": 256,
+                "height": 144,
+                "steps": 8,
+                "num_frames": 6,
+                "fps": 6,
+                "guidance_scale": 6.5,
+            },
+        },
+    ),
     "high_quality": ExecutionProfile(
         name="high_quality",
         description=(
-            "Perfil para hardware mais forte. Aumenta resolução e qualidade, aceitando maior custo computacional."
+            "Perfil para hardware mais forte. Aumenta resolucao e qualidade, aceitando maior custo computacional."
         ),
         overrides={
             "runtime": {

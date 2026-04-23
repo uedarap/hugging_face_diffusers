@@ -1012,3 +1012,7 @@ Sem ambiente virtual, é comum acontecer:
 - tudo começar a conflitar no mesmo Python do sistema
 
 No seu caso, como IA local costuma depender bastante de versão de `torch`, CUDA e bibliotecas associadas, usar `venv` é especialmente recomendado.
+
+# DUMP 🗑️
+
+`python generate_image.py --prompt "a rainy futuristic city street at night, neon signs, reflections on wet asphalt, cinematic atmosphere, detailed environment art" --device cuda --profile gtx1650 --disable-safety-checker`

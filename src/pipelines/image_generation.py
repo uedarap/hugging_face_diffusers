@@ -1,7 +1,7 @@
-"""Pipeline de geração de imagem.
+"""Pipeline de geracao de imagem.
 
-Este módulo encapsula tudo que é específico de image generation.
-Ele isola a biblioteca Diffusers do restante da aplicação.
+Este modulo encapsula tudo que e especifico de image generation.
+Ele isola a biblioteca Diffusers do restante da aplicacao.
 """
 
 from __future__ import annotations
@@ -26,12 +26,15 @@ class ImageGenerationResult:
 
 
 def _build_generator(device: str, seed: int) -> torch.Generator:
-    # O gerador com seed ajuda a tornar resultados mais reproduzíveis.
+    # O gerador com seed ajuda a tornar resultados mais reproduziveis.
     # Em CPU e CUDA o construtor de Generator recebe o device correspondente.
     return torch.Generator(device=device).manual_seed(seed)
 
 
-def generate_image(app_config: AppConfig) -> ImageGenerationResult:
+def generate_image(
+    app_config: AppConfig,
+    disable_safety_checker: bool = False,
+) -> ImageGenerationResult:
     validate_device_request(app_config.runtime.device_mode, app_config.runtime.resolved_device)
 
     try:
@@ -42,8 +45,13 @@ def generate_image(app_config: AppConfig) -> ImageGenerationResult:
             torch_dtype=torch_dtype,
         )
 
-        # Attention slicing é um ajuste simples e didático que costuma ajudar
-        # em ambientes mais limitados, principalmente quando a memória aperta.
+        if disable_safety_checker:
+            logger.warning("Safety checker desativado para este teste local.")
+            pipeline.safety_checker = None
+            pipeline.requires_safety_checker = False
+
+        # Attention slicing e um ajuste simples e didatico que costuma ajudar
+        # em ambientes mais limitados, principalmente quando a memoria aperta.
         pipeline.enable_attention_slicing()
         pipeline = pipeline.to(app_config.runtime.resolved_device)
 
@@ -55,6 +63,14 @@ def generate_image(app_config: AppConfig) -> ImageGenerationResult:
             guidance_scale=app_config.image.guidance_scale,
             generator=_build_generator(app_config.runtime.resolved_device, app_config.image.seed),
         )
+
+        nsfw_flags = getattr(result, "nsfw_content_detected", None)
+        if nsfw_flags and any(nsfw_flags):
+            raise RuntimeError(
+                "O safety checker marcou a imagem como NSFW e retornou uma saida preta. "
+                "Tente outro prompt/seed ou rode com --disable-safety-checker para teste local."
+            )
+
         image = result.images[0]
         output_path = save_image(
             image=image,
@@ -65,9 +81,9 @@ def generate_image(app_config: AppConfig) -> ImageGenerationResult:
         return ImageGenerationResult(output_path=output_path)
     except torch.cuda.OutOfMemoryError as exc:
         raise RuntimeError(
-            "Memória insuficiente na GPU durante geração de imagem. Tente reduzir resolução ou steps."
+            "Memoria insuficiente na GPU durante geracao de imagem. Tente reduzir resolucao ou steps."
         ) from exc
     except OSError as exc:
-        raise RuntimeError(f"Falha ao carregar/salvar recursos da geração de imagem: {exc}") from exc
+        raise RuntimeError(f"Falha ao carregar/salvar recursos da geracao de imagem: {exc}") from exc
     except Exception as exc:
-        raise RuntimeError(f"Falha na geração de imagem: {exc}") from exc
+        raise RuntimeError(f"Falha na geracao de imagem: {exc}") from exc
