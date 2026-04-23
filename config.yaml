@@ -1,0 +1,40 @@
+runtime:
+  # auto: escolhe cuda se disponível; caso contrário, usa cpu.
+  # cpu: força CPU.
+  # cuda: força GPU NVIDIA via CUDA.
+  device_mode: "auto"
+
+  # auto, cpu_safe, gtx1080, high_quality
+  performance_profile: "auto"
+
+  # Pode ser "auto", "float32" ou "float16".
+  # Em auto, a POC escolhe float32 para CPU e float16 para CUDA.
+  dtype: "auto"
+
+models:
+  image_model: "runwayml/stable-diffusion-v1-5"
+  video_model: "cerspense/zeroscope_v2_576w"
+
+image:
+  width: 512
+  height: 512
+  steps: 25
+  guidance_scale: 7.5
+  seed: 42
+
+video:
+  width: 320
+  height: 192
+  steps: 15
+  guidance_scale: 7.5
+  num_frames: 12
+  fps: 8
+  seed: 42
+
+outputs:
+  images_dir: "outputs/images"
+  videos_dir: "outputs/videos"
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
