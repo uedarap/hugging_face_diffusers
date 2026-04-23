@@ -906,3 +906,54 @@ Esta POC foi desenhada para ser:
 - fácil de adaptar
 
 Ela não tenta esconder as limitações reais de hardware. Pelo contrário: usa essas limitações como parte do aprendizado.
+
+
+---
+
+
+# Resumo de execução
+
+Para executar o gerador de imagens no Windows, o fluxo básico é:
+
+ativar o ambiente virtual
+.venv\Scripts\Activate.ps1
+
+instalar dependências
+pip install -r requirements.txt
+
+instalar o PyTorch adequado para sua máquina, Exemplo CPU:
+pip install torch torchvision torchaudio
+
+validar o ambiente
+python check_environment.py
+
+gerar uma imagem
+python generate_image.py --prompt "a futuristic city at sunrise" --profile cpu_safe
+
+Exemplos úteis:
+python generate_image.py --prompt "a cinematic robot in the rain" --device cuda --profile gtx1080
+python generate_image.py --prompt "an astronaut reading in a library" --steps 20 --seed 123
+python generate_image.py --prompt "a watercolor castle on a hill" --output outputs/images/teste.png
+
+A imagem gerada vai para outputs/images/, a menos que você passe --output.
+
+Sobre usar ambiente virtual no Windows: ele serve para isolar as dependências do projeto. Isso evita misturar versões de torch, diffusers, transformers e outros pacotes com projetos diferentes ou com o Python global da máquina.
+
+Na prática, o venv ajuda porque:
+
+evita conflito entre projetos
+deixa a instalação mais previsível
+facilita testar versões diferentes de bibliotecas
+permite apagar e recriar o ambiente se algo quebrar
+evita “sujar” o Python global do Windows
+Sem ambiente virtual, é comum acontecer:
+
+um projeto instalar uma versão de torch
+outro projeto precisar de outra versão
+tudo começar a conflitar no mesmo Python do sistema
+No seu caso, como IA local costuma depender bastante de versão de torch, CUDA e libs associadas, usar venv é especialmente recomendado.
+
+Se quiser, eu posso te passar agora um passo a passo exato 
+CPU only
+GTX 1080 com CUDA
+configurar o .env para baixar os modelos dentro da pasta do projeto
